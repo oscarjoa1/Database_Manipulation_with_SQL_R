@@ -1,4 +1,4 @@
- # Database Manipulation with SQL and R
+ # <font color = "blue"> Database Manipulation with SQL and R 
  
  Bem-vindo a meu repositório! Aqui você encontrará laboratórios práticos e úteis que abordam diversas técnicas de manipulação de bases de dados, tratamento de grandes volumes de dados, criação e consultas em *SQL*, além de conexão com *R* e outras ferramentas. Espero que você possa aproveitar ao máximo esses recursos e aprimorar suas habilidades em manipulação de dados.
  
