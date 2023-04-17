@@ -1,71 +1,78 @@
+#------------------------------------------------------#
+# Autor: Oscar J. O. Ayala
+#------------------------------------------------------#
+
 # limpar varavies
 rm(list = ls())
 
-# pacotes
+#1. pacote
 library(tidyverse)
+library(magrittr)
 
-# tabelas
+#2. tabelas
+tidyr::table1 %>%
+  knitr::kable(caption = "Table 1. Tidy format")
 
-# 2.1. sim
-tb_1 <- tidyr::table1
+tidyr::table2 %>%
+  knitr::kable(caption = "Table 2. Not tidy format")
 
-# 2.2. nao
-tb_2 <- tidyr::table2 %>% 
-        tidyr::pivot_wider(names_from = "type",
-                           values_from = "count")
+tidyr::table3 %>%
+  knitr::kable(caption = "Table 3. Not tidy format") 
 
-# 2.3. nao
-tb_3 <- tidyr::table3 %>%
-        tidyr::separate(col = "rate",
-                        into = c("cases", "population"),
-                        sep = "/",
-                        convert = TRUE)
+tidyr::table4a %>%
+  knitr::kable(caption = "Table 4a. Not tidy format")
 
-# 2.4. nao
-tb_4 <- tidyr::table4a %>% 
-        tidyr::pivot_longer(cols = c(`1999`, `2000`),
-                            names_to = "year",
-                            values_to = "cases",
-                            names_transform = list(year = as.integer))
-
-# 2.5. nao
-tb_5 <- tidyr::table4b %>%
-        tidyr::pivot_longer(cols = c(`1999`, `2000`),
-                            names_to = "year",
-                            values_to = "population",
-                            names_transform = list(year = as.integer))
+tidyr::table4b %>%
+  knitr::kable(caption = "Table 4b. Not tidy format") 
 
 # 3. 
-rate <- tb_1 %>% 
-        dplyr::mutate(rate = cases / population * 100000)
+taxas <- with(tidyr::table1, cases / population * 10000)
 
-# 4. 
-tb_1 %>%
-  dplyr::group_by(year) %>%
-  summarise(total = sum(cases))
+# 4.
+tidyr::table1 %>% dplyr::group_by(year) %>% 
+  dplyr::summarise(total_cases = sum(cases))
 
-# 5. 
-tb_1 %>%
-  dplyr::group_by(country) %>%
-  dplyr::summarise(total = sum(cases))
+# 5.
+tidyr::table1 %>% 
+  dplyr::group_by(country) %>% 
+  dplyr::summarise(total_cases = sum(cases))
 
-# 6. 
-tb_1 %>%
-  dplyr::select(-population)
+# 6.
+tidyr::table1 %>% dplyr::select(-population)
 
-# 7. 
-rate %>%
-  ggplot(aes(x = year, y = rate, colour = country)) + geom_line()
-
-tb_1 %>%
-  ggplot(aes(x = year, y = cases / population * 100000, colour = country)) +
-  geom_line()
+# 7.
+tidyr::table1 %>% 
+  dplyr::mutate(taxas = cases / population * 10000)  %>% 
+  ggplot2::ggplot(ggplot2::aes(year, taxas, group = country)) +
+  ggplot2::geom_line(ggplot2::aes(color = country)) + 
+  ggplot2::geom_point(ggplot2::aes(color = country), shape = 15) +
+  ggplot2::scale_x_continuous(breaks = c(1999, 2000)) +
+  ggplot2::labs(title = "Mudança casos de Tuberculoses", x = "ano",
+                y = "Taxa por 10.000 pessoas") +
+  ggplot2::scale_color_discrete("País") +
+  ggplot2::theme_light()
 
 # 8. 
-tb_2 %>% 
-  dplyr::mutate(rate = cases / population * 100000)
+table2 %>% tidyr::pivot_wider(id_cols = c("country", "year"), 
+                              names_from = type, values_from = count) %>% 
+  dplyr::mutate(taxas = cases / population * 10000) %>% 
+  knitr::kable(caption = "Formato tidy")
 
-# (a funcao object.size permite saber o tamanho de um objeto na memoria
-# um objeto inteiro consume menos memoria do que um dbl)
+# 9. 
+table4a %<>% tidyr::pivot_longer(cols = c("1999", "2000"), names_to = "year", 
+                                values_to = "cases", values_transform = as.integer)
 
+table4b %<>% tidyr::pivot_longer(cols = c("1999", "2000"), names_to = "year", 
+                                values_to = "population", values_transform = as.integer)
+
+table_ab <- dplyr::inner_join(table4a, table4b, by = c("country", "year"))
+table_ab %>% knitr::kable(caption = "Inner join")
+
+# 10. 
+table3 %>% 
+  tidyr::separate(col = rate, into = c("cases", "population"), 
+                  sep = "/", convert = TRUE) %>% 
+  knitr::kable(caption = "Formato tidy")
+
+#-----------------------------------FIM--------------------------------#
 
