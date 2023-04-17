@@ -4,4 +4,4 @@
 
 - Lendo `100.000` observações por vez, determine o percentual de vôos por Cia. Aérea que apresentou atraso na chegada (`ARRIVAL_DELAY`) superior a `10` minutos. As companhias a serem utilizadas são: `AA`, `DL`, `UA` e `US`. A estatística de interesse deve ser calculada para cada um dos dias de `2015`. 
 
-- Os arquivos *laboratorio_02.Rmd* contém a solução em linguagem *R*, *laboratorio_02.html* a saída em html com uma bonita apresentação e *flight.csv* contém os dados de interesse.
+- Os arquivos *laboratorio_02.Rmd* contém a solução em linguagem *R* e *laboratorio_02.html* a saída em html com uma bonita apresentação.
