@@ -1,0 +1,146 @@
+---
+title: "Laboratório 01"
+author: "Oscar J. O. Ayala"
+output: pdf_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+# Introdução
+
+Um conjunto de dados no formato *tidy* beneficia o analista de dados por permitir a manipulação dos mesmos de uma maneira unificada. De modo similar, métodos estatísticos são habitualmente implementados para receber dados neste formato. Desta maneira, a importação e tratamento de dados visando o referido formato reduzirá a criação de bancos de dados temporários, evitando problemas difíceis de diagnosticar.
+
+Os conjuntos de dados apresentados correspondem ao número de casos de tuberculose observados em alguns países, juntamente com seus tamanhos populacionais.
+
+# Manipulação de Dados no Formato Tidy
+
+- 1. Carregue o pacote `tidyverse`
+
+```{r}
+library(tidyverse)
+
+```
+
+- 2. Apresente os bancos de dados `table1` , `table2` , `table3` , `table4a` e `table4b` , distribuídos juntamente com o pacote `tidyverse` . Para cada banco de dados, descreva textualmente se ele está no formato tidy e justifique cada uma de suas respostas.
+
+
+A `Table 1` está em formato *tidy*, cada coluna uma variável, cada linha um registro e cada célula uma única entrada.
+
+```{r}
+tidyr::table1 %>%
+  knitr::kable(caption = "Table 1. Tidy format")
+```
+
+A `Table 2`, não esta em formato *tidy*, tem mais de uma variável no campo *type*.
+
+```{r}
+tidyr::table2 %>%
+  knitr::kable(caption = "Table 2. Not tidy format")
+```
+
+
+A `Table 3`, não esta em formato *tidy*, tem mais de uma variável no campo *type*.
+
+```{r}
+tidyr::table3 %>%
+  knitr::kable(caption = "Table 3. Not tidy format") 
+```
+
+As `Table 4a` e `Table 4b`, não estão em formato *tidy*, os campos `1999` e `2000` não são variáveis.
+
+```{r}
+tidyr::table4a %>%
+  knitr::kable(caption = "Table 4a. Not tidy format") 
+```
+
+```{r}
+tidyr::table4b %>%
+  knitr::kable(caption = "Table 4b. Not tidy format") 
+```
+
+- 3. Utilizando comandos do pacote `dplyr` , determine a taxa de ocorrência de tuberculose para cada `10.000` pessoas. Armazene o resultado em um objeto chamado `taxas`.
+
+```{r}
+taxas <- with(tidyr::table1, cases / population * 10000)
+taxas
+```
+- 4. Apresente, utilizando comandos do pacote `dplyr` , o número de casos de tuberculose por ano.
+
+```{r}
+tidyr::table1 %>% dplyr::group_by(year) %>% 
+  dplyr::summarise(total_cases = sum(cases))
+```
+
+- 5. Apresente, utilizando comandos do pacote `dplyr`, o número de casos de tuberculose identificados em cada país.
+
+```{r}
+tidyr::table1 %>% 
+  dplyr::group_by(country) %>% 
+  dplyr::summarise(total_cases = sum(cases))
+```
+
+- 6. Utilizando comandos do pacote `dplyr` , apresente uma tabela que descreva a mudança no número de casos, em cada país, ao longo dos anos de `1999` e `2000`.
+
+```{r}
+tidyr::table1 %>% dplyr::select(-population)
+```
+
+- 7. Apresente um gráfico de linhas, preparado via `ggplot2` , apresentando a mudança na taxa de casos (por `10.000` habitantes) estratificado por país.
+
+```{r}
+tidyr::table1 %>% 
+  dplyr::mutate(taxas = cases / population * 10000)  %>% 
+  ggplot2::ggplot(ggplot2::aes(year, taxas, group = country)) +
+  ggplot2::geom_line(ggplot2::aes(color = country)) + 
+  ggplot2::geom_point(ggplot2::aes(color = country), shape = 15) +
+  ggplot2::scale_x_continuous(breaks = c(1999, 2000)) +
+  ggplot2::labs(title = "Mudança casos de Tuberculoses", x = "ano",
+                y = "Taxa por 10.000 pessoas") +
+  ggplot2::scale_color_discrete("País") +
+  ggplot2::theme_light()
+
+```
+
+- 8. Calcule a taxa para as tabelas `table2` e `table4a + table4b`.
+
+```{r}
+table2 %>% tidyr::pivot_wider(id_cols = c("country", "year"), 
+                              names_from = type, values_from = count) %>% 
+  dplyr::mutate(taxas = cases / population * 10000) %>% 
+  knitr::kable(caption = "Formato tidy")
+
+```
+
+
+```{r}
+library(magrittr)
+
+table4a %<>% tidyr::pivot_longer(cols = c("1999", "2000"), names_to = "year", 
+                                values_to = "cases", values_transform = as.integer)
+
+table4b %<>% tidyr::pivot_longer(cols = c("1999", "2000"), names_to = "year", 
+                                values_to = "population", values_transform = as.integer)
+
+table_ab <- dplyr::inner_join(table4a, table4b, by = c("country", "year"))
+table_ab %>% knitr::kable(caption = "Inner join")
+
+```
+
+- 9. Observe que a coluna rate do objeto `table3` é um texto mostrando a fração que formaria a taxa de casos de tuberculose. Transforme o objeto `table3` em um objeto com formato `tidy` separando a coluna 3 em duas outras colunas: cases e population, utilizando o comando `separate` . Utilize o argumento `convert` para transformar o resultado em um objeto numérico. 
+
+```{r}
+table3 %>% 
+  tidyr::separate(col = rate, into = c("cases", "population"), 
+                  sep = "/", convert = TRUE) %>% 
+  knitr::kable(caption = "Formato tidy")
+
+```
+
+A experiência de usar o *R* é única, muito boa. Fim!
+
+
+
+
+
