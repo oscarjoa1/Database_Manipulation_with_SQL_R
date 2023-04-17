@@ -1,0 +1,120 @@
+---
+title: "Laboratório 2: Processamento de Bases de Dados em Lote"
+author: "Oscar J. O. Ayala"
+date: ""
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+# Desafio 
+
+Lendo `100.000` observações por vez, determine o percentual de vôos por Cia. Aérea que apresentou atraso na chegada (`ARRIVAL_DELAY`) superior a `10` minutos. As companhias a serem utilizadas são: `AA`, `DL`, `UA` e `US`. A estatística de interesse deve ser calculada para cada um dos dias de `2015`. 
+
+# Solução
+
+- Primeiro, se carregam os pacotes necessários.
+
+```{r}
+library(readr)
+library(dplyr)
+library(magrittr)
+library(ggcal)
+library(ggplot2)
+```
+
+- Em segundo lugar, uma parte dos dados é carregada para conhecer sua estrutura.
+
+```{r}
+flight <- readr::read_csv(file = "flights.csv", n_max = 100)
+head(flight, n = 10)
+```
+
+- Em terceiro lugar, se selecionam as variáveis a serem usadas. Apenas as variáveis `AIRLINE` (Cia), `ARRIVAL_DELAY`, `YEAR`, `MONTH` e `DAY`. 
+
+```{r}
+mycols <- readr::cols_only(YEAR = "i",
+                           MONTH = "i", 
+                           DAY = "i",
+                           AIRLINE = "c",
+                           ARRIVAL_DELAY = "i")
+
+flight <- readr::read_csv(file = "flights.csv", n_max = 10000, col_types = mycols)
+head(flight, n = 10)
+```
+
+- Quarto, se cria uma função que calcula as estatísticas suficientes e outra que as combina. 
+
+```{r}
+getStats <- function(input, pos){
+  input %<>% 
+    dplyr::filter(YEAR == '2015', AIRLINE %in% c("AA", "DL", "UA", "US")) %>% 
+    tidyr::drop_na(ARRIVAL_DELAY, AIRLINE) %>% 
+    dplyr::group_by(YEAR, MONTH, DAY, AIRLINE) %>% 
+    dplyr::summarise(npi = sum(ARRIVAL_DELAY > 10), npt = n(), .groups = "drop")
+  
+  return(input)
+}
+
+camputeStats <- function(stats){
+  
+stats %<>% 
+  dplyr::group_by(YEAR, MONTH, DAY, AIRLINE) %>% 
+    dplyr::summarise(np = sum(npi), n = sum(npt),
+                     prop = np / n, .groups = "drop")
+  
+  return(stats)
+}
+
+```
+
+- Quinto, se faz a importação por lote. 
+
+```{r}
+flight <- readr::read_csv_chunked(file = "flights.csv",
+                                  callback = DataFrameCallback$new(getStats),
+                                  chunk_size = 1e6,
+                                  col_types = mycols)
+camputeStats(flight)
+```
+
+
+- Sexto, é feito o cronograma de atrasos de voos por companhia aérea.
+
+```{r}
+prop <- camputeStats(flight) %>%
+  dplyr::mutate(data = lubridate::ymd(paste(YEAR, MONTH, DAY, sep = '-')),
+                .before = 'AIRLINE') %>%
+  dplyr::select(-c(YEAR, MONTH, DAY))
+```
+
+
+```{r}
+proport_g <- prop %>%
+  dplyr::filter(AIRLINE == 'AA') 
+ggcal(proport_g$data, proport_g$prop) +
+ ggplot2::scale_fill_gradientn(colors = c("#FFFFFF", "#0072B2"), name = "Value")
+
+proport_g <- prop %>%
+  dplyr::filter(AIRLINE == 'DL')
+ggcal(proport_g$data, proport_g$prop)+
+ ggplot2::scale_fill_gradientn(colors = c("#F3E99F", "#F7D060"), name = "Value")
+
+proport_g <- prop %>%
+  dplyr::filter(AIRLINE == 'UA')
+ggcal(proport_g$data, proport_g$prop) +
+ ggplot2::scale_fill_gradientn(colors = c("#F3CCFF", "#A555EC"), name = "Value")
+
+proport_g <- prop %>%
+  dplyr::filter(AIRLINE == 'US')
+ggcal(proport_g$data, proport_g$prop) +
+ ggplot2::scale_fill_gradientn(colors = c("#FFF9B0", "#FF577F"), name = "Value")
+```
+
+- Sétimo, se percibe uma boa utilidade do gráfico.
+
