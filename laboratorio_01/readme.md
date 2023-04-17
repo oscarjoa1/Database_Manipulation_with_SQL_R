@@ -4,3 +4,5 @@
 alguns países, juntamente com seus tamanhos populacionais (Carvalho, Ludwing e Benaglia).
 
 - Os conjuntos de dados estudados se referem ao número de casos de tuberculose e os tamanhos populacionais observados em alguns países.
+
+- Os arquivos **laboratorio_01.Rmd** e **laboratorio_pdf_01.Rmd** comtém a solução em linguagem R. Os documentos **laboratorio_01.htm** e **laboratorio_pdf_01**  apresentam os resultados organizados e descritos em formato *html* e *pdf*, respectivamente.
