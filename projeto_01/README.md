@@ -1,4 +1,4 @@
-# Introdução
+# Mineração de dados, estatísticas e séries temporais
 
 O conjunto de dados reais em questão foi disponibilizado pela empresa *Millenium s.a*, que
 refere-se a *5* (cinco) planilhas Excel de dados na sua forma bruta, rotuladas como *BBDD*, *Param_Horas*,
